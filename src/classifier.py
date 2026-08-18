@@ -1,12 +1,13 @@
+import os
 import pandas as pd
 
-# Technology Category Rules
+# Domain Taxonomy (Evaluated top-to-bottom: Specific domains before General/Core ML)
 TAXONOMY = {
-    "AI Agents": ["agent", "agents", "autonomous", "crewai", "langgraph", "swarm", "tool-use"],
-    "Computer Vision": ["computer-vision", "image", "yolo", "opencv", "segmentation", "detection", "eraser"],
-    "RAG & Retrieval": ["rag", "retrieval", "vector", "embedding", "search", "chroma", "pinecone"],
-    "MLOps & Orchestration": ["airflow", "pipeline", "orchestration", "workflow", "scheduler", "mlops"],
-    "Core ML & Deep Learning": ["deep-learning", "neural-network", "machine-learning", "pytorch", "tensorflow", "training"]
+    "AI Agents": ["agent", "agents", "autonomous", "crewai", "langgraph", "swarm", "trading-bot", "tool-use"],
+    "Computer Vision": ["computer-vision", "image", "yolo", "opencv", "segmentation", "detection", "eraser", "ocr"],
+    "RAG & Retrieval": ["rag", "retrieval", "vector", "embedding", "search", "chroma", "pinecone", "milvus"],
+    "MLOps & Orchestration": ["airflow", "pipeline", "orchestration", "workflow", "scheduler", "mlops", "docker", "kubernetes"],
+    "Core ML & Deep Learning": ["deep-learning", "neural-network", "machine-learning", "pytorch", "tensorflow", "training", "cuda"]
 }
 
 def classify_record(text_corpus: str) -> str:
@@ -16,11 +17,11 @@ def classify_record(text_corpus: str) -> str:
             return category
     return "General ML"
 
-def process_and_classify(input_csv: str, output_csv: str):
+def process_and_classify(input_csv: str, output_csv: str) -> pd.DataFrame:
     df = pd.read_csv(input_csv)
     
-    # Fill missing values
-    df["repo_name"] = df["repo_name"].fillna("").astype(str) if "repo_name" in df.columns else df.get("product_page_url", "").astype(str)
+    # Fill missing text values
+    df["repo_name"] = df["repo_name"].fillna("").astype(str) if "repo_name" in df.columns else ""
     df["description"] = df["description"].fillna("").astype(str) if "description" in df.columns else ""
     df["topics"] = df["topics"].fillna("").astype(str) if "topics" in df.columns else ""
     
@@ -28,9 +29,16 @@ def process_and_classify(input_csv: str, output_csv: str):
     combined = df["repo_name"] + " " + df["description"] + " " + df["topics"]
     df["category"] = combined.apply(classify_record)
     
+    os.makedirs(os.path.dirname(output_csv), exist_ok=True)
     df.to_csv(output_csv, index=False)
+    
     print(f"✅ Classified {len(df)} records and saved to {output_csv}")
-    print(df[["repo_name", "category"]].head(10))
+    print("\n--- Category Distribution ---")
+    print(df["category"].value_counts().to_string())
+    return df
 
 if __name__ == "__main__":
-    process_and_classify("data/sample/demo_run.csv", "data/processed/sample_classified.csv")
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) if "__file__" in locals() else "."
+    raw_path = os.path.join(base_dir, "data", "raw", "raw_2026_08_19.csv")
+    classified_path = os.path.join(base_dir, "data", "processed", "classified_2026_08_19.csv")
+    process_and_classify(raw_path, classified_path)

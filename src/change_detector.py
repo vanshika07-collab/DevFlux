@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-def calculate_snapshot_delta(snapshot_old_path: str, snapshot_new_path: str):
+def calculate_snapshot_delta(snapshot_old_path: str, snapshot_new_path: str) -> pd.DataFrame:
     if not os.path.exists(snapshot_old_path) or not os.path.exists(snapshot_new_path):
         print("⚠️ One or both snapshot files are missing.")
         return None
@@ -9,13 +9,13 @@ def calculate_snapshot_delta(snapshot_old_path: str, snapshot_new_path: str):
     df_old = pd.read_csv(snapshot_old_path)
     df_new = pd.read_csv(snapshot_new_path)
 
-    # Ensure required columns exist
-    for df in [df_old, df_new]:
-        if "stars" not in df.columns:
-            df["stars"] = 0
-        df["stars"] = pd.to_numeric(df["stars"], errors="coerce").fillna(0).astype(int)
+    # Ensure numeric stars
+    for d in [df_old, df_new]:
+        if "stars" not in d.columns:
+            d["stars"] = 0
+        d["stars"] = pd.to_numeric(d["stars"], errors="coerce").fillna(0).astype(int)
 
-    # Merge datasets on repo_name
+    # Merge on repo_name
     merged = pd.merge(
         df_new,
         df_old[["repo_name", "stars"]],
@@ -32,20 +32,17 @@ def calculate_snapshot_delta(snapshot_old_path: str, snapshot_new_path: str):
         repo_count=("repo_name", "count"),
         total_stars=("stars", "sum"),
         total_growth=("star_growth", "sum")
-    ).reset_index().sort_values(by="total_growth", ascending=False)
+    ).reset_index().sort_values(by="total_stars", ascending=False)
 
     return summary
 
 if __name__ == "__main__":
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    
-    # Path to sample classified file
-    sample_file = os.path.join(base_dir, "data", "processed", "sample_classified.csv")
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) if "__file__" in locals() else "."
+    current_classified = os.path.join(base_dir, "data", "processed", "classified_2026_08_19.csv")
 
-    if os.path.exists(sample_file):
+    if os.path.exists(current_classified):
         print("📊 Running Delta & Trend Detection Test...")
-        # Self-comparison baseline test (growth = 0 for Day 1 baseline)
-        trends = calculate_snapshot_delta(sample_file, sample_file)
+        trends = calculate_snapshot_delta(current_classified, current_classified)
         if trends is not None:
             print("\n--- Category Breakdown (Baseline Snapshot) ---")
             print(trends.to_string(index=False))
