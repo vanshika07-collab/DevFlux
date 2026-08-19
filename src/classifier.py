@@ -1,7 +1,6 @@
-import os
+from pathlib import Path
 import pandas as pd
 
-# Domain Taxonomy (Evaluated top-to-bottom: Specific domains before General/Core ML)
 TAXONOMY = {
     "AI Agents": ["agent", "agents", "autonomous", "crewai", "langgraph", "swarm", "trading-bot", "tool-use"],
     "Computer Vision": ["computer-vision", "image", "yolo", "opencv", "segmentation", "detection", "eraser", "ocr"],
@@ -10,35 +9,44 @@ TAXONOMY = {
     "Core ML & Deep Learning": ["deep-learning", "neural-network", "machine-learning", "pytorch", "tensorflow", "training", "cuda"]
 }
 
-def classify_record(text_corpus: str) -> str:
-    text = str(text_corpus).lower()
-    for category, keywords in TAXONOMY.items():
-        if any(kw in text for kw in keywords):
-            return category
-    return "General ML"
+def classify_record(repo_name: str, topics: str, language: str) -> list:
+    text = f"{repo_name} {topics} {language}".lower()
+    matched = [cat for cat, kws in TAXONOMY.items() if any(kw in text for kw in kws)]
+    return matched if matched else ["General ML"]
 
-def process_and_classify(input_csv: str, output_csv: str) -> pd.DataFrame:
-    df = pd.read_csv(input_csv)
-    
-    # Fill missing text values
-    df["repo_name"] = df["repo_name"].fillna("").astype(str) if "repo_name" in df.columns else ""
-    df["description"] = df["description"].fillna("").astype(str) if "description" in df.columns else ""
-    df["topics"] = df["topics"].fillna("").astype(str) if "topics" in df.columns else ""
-    
-    # Combine signals for rule matching
-    combined = df["repo_name"] + " " + df["description"] + " " + df["topics"]
-    df["category"] = combined.apply(classify_record)
-    
-    os.makedirs(os.path.dirname(output_csv), exist_ok=True)
-    df.to_csv(output_csv, index=False)
-    
-    print(f"✅ Classified {len(df)} records and saved to {output_csv}")
-    print("\n--- Category Distribution ---")
-    print(df["category"].value_counts().to_string())
-    return df
+def classify_all_snapshots():
+    base = Path(__file__).resolve().parent.parent if "__file__" in locals() else Path(".")
+    processed_dir = base / "data" / "processed"
+    clean_files = sorted(processed_dir.glob("clean_*.csv"))
+
+    if not clean_files:
+        print("⚠️ No cleaned snapshots found to classify.")
+        return []
+
+    print("=" * 60)
+    print("STEP 3: DOMAIN TAXONOMY CLASSIFICATION")
+    print("=" * 60)
+
+    classified_files = []
+    for filepath in clean_files:
+        df = pd.read_csv(filepath)
+
+        classifications = df.apply(
+            lambda r: classify_record(r["repo_name"], r["topics"], r["language"]), 
+            axis=1
+        )
+
+        df["categories"] = classifications.apply(lambda cats: "|".join(cats))
+        df["primary_category"] = classifications.apply(lambda cats: cats[0])
+
+        out_name = filepath.name.replace("clean_", "classified_")
+        out_path = processed_dir / out_name
+        df.to_csv(out_path, index=False)
+        
+        print(f"   🏷️ {filepath.name} -> {out_name} ({len(df)} repos)")
+        classified_files.append(out_path)
+
+    return classified_files
 
 if __name__ == "__main__":
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) if "__file__" in locals() else "."
-    raw_path = os.path.join(base_dir, "data", "raw", "raw_2026_08_19.csv")
-    classified_path = os.path.join(base_dir, "data", "processed", "classified_2026_08_19.csv")
-    process_and_classify(raw_path, classified_path)
+    classify_all_snapshots()

@@ -1,0 +1,6 @@
+primary_category,total_repos,total_stars,net_star_growth,avg_growth_per_repo,median_growth_per_repo,avg_growth_rate,avg_momentum
+Computer Vision,25,209038,130,5.2,0.0,0.02,6.3
+Core ML & Deep Learning,97,1010110,392,4.04,0.0,0.23,6.4
+MLOps & Orchestration,12,184855,35,2.92,0.0,0.01,7.8
+RAG & Retrieval,8,30039,3,0.38,0.0,0.02,2.4
+AI Agents,7,3106,0,0.0,0.0,0.0,0.0
