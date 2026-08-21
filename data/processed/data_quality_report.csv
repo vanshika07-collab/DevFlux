@@ -1,3 +1,4 @@
 file,total_repos,unique_repos,duplicate_rows,missing_language_pct,missing_description_pct,empty_topics_pct,min_stars,max_stars,mean_stars
 clean_raw_2026_08_19.csv,150,150,0,2.0,100.0,0.0,51,197042,10834
 clean_raw_2026_08_20.csv,149,149,0,2.7,100.0,0.0,51,197067,9645
+clean_raw_2026_08_21.csv,146,146,0,1.4,100.0,0.0,51,197220,11082
