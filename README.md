@@ -28,7 +28,7 @@ Raw star totals represent lagging historical mindshare. DevFlux implements three
 
 ---
 
-## 🌐 Bright Data Scraper Studio Integration
+## Bright Data Scraper Studio Integration
 
 DevFlux relies on a custom web collector built with **Bright Data Scraper Studio** to extract structured metadata directly from public GitHub search feeds.
 
@@ -40,13 +40,13 @@ DevFlux relies on a custom web collector built with **Bright Data Scraper Studio
 
 ---
 
-## 🛠️ Architecture & Pipeline
+## Architecture & Pipeline
 GitHub Search Feed (Web Data)    ------------>    Bright Data Web Scraper (Data Ingestion)    ------------>    validator (Schema verification & data integrity checks)    ------------>    classifier (Domain Taxonomy Classification)    ------------>       change_detector (Delta calculation & Star-growth velocity tracking)    ------------>    Analytics & Presentation Layer
 
 
 ---
 
-## 🏷️ Domain Taxonomy
+## Domain Taxonomy
 Repositories are systematically classified across 5 core machine learning focus areas:
 1. **AI Agents & Automation** (`swarm`, `autonomous`, `crewai`, `langgraph`, `tool-use`)
 2. **Computer Vision** (`image`, `yolo`, `segmentation`, `detection`, `opencv`)
@@ -56,7 +56,7 @@ Repositories are systematically classified across 5 core machine learning focus 
 
 ---
 
-## 📊 Milestone Tracker
+## Milestone Tracker
 
 [x] Milestone 1: Production web collector deployed on Bright Data Scraper Studio.
 [x] Milestone 2: Multi-format validation, dynamic alias mapping, and schema auditing pipeline built.
